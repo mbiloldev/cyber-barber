@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLVCK BLADE — Premium Barbershop</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/SplitText.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<style>
+  :root {
+    --gold: #D4AF37;
+    --gold-dim: #8a6f1f;
+    --cyan: #00f0ff;
+    --cyan-dim: #005f66;
+    --black: #0A0A0A;
+    --obsidian: #111318;
+    --gray: #1a1d24;
+    --text: #e8e8e8;
+    --text-dim: #888;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: auto; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ─── Custom Cursor ─── */
+  #cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width .2s, height .2s, background .2s;
+    mix-blend-mode: difference;
+  }
+  #cursor-ring {
+    position: fixed;
+    width: 40px; height: 40px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.12s ease, width .3s, height .3s, opacity .3s;
+    opacity: 0.5;
+  }
+  body:hover #cursor { opacity: 1; }
+
+  /* ─── Noise Overlay ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9997;
+    opacity: 0.3;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 48px;
+    background: linear-gradient(to bottom, rgba(10,10,10,0.95), transparent);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(212,175,55,0.5);
+  }
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    transition: color .3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0; right: 0;
+    height: 1px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform .3s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+  .nav-cta {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 10px 28px;
+    cursor: none;
+    transition: background .3s, color .3s, box-shadow .3s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .nav-cta:hover {
+    background: var(--gold);
+    color: var(--black);
+    box-shadow: 0 0 30px rgba(212,175,55,0.4);
+  }
+
+  /* ─── HERO ─── */
+  #hero {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .hero-bg-gif {
+    position: absolute;
+    inset: 0;
+    background: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXN6Mmd0N3p0NThpNzFpc3V5N29hamJ1cm1idmN0OHdkeWhvYWZ3dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7bu3XilJ5BOiSGic/giphy.gif') center/cover;
+    opacity: 0.08;
+    z-index: 0;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    max-width: 900px;
+    padding: 0 24px;
+  }
+  .hero-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0;
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 9vw, 130px);
+    line-height: 0.92;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 60px rgba(212,175,55,0.15);
+    overflow: hidden;
+  }
+  .hero-title .word { display: inline-block; overflow: hidden; margin-right: 16px; }
+  .hero-title .gold { color: var(--gold); text-shadow: 0 0 40px rgba(212,175,55,0.6); }
+  .hero-sub {
+    margin-top: 28px;
+    font-size: 15px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    opacity: 0;
+  }
+  .hero-actions {
+    margin-top: 48px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    opacity: 0;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--black);
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    padding: 16px 44px;
+    cursor: none;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    transition: box-shadow .3s, transform .2s;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 40px rgba(212,175,55,0.6);
+    transform: translateY(-2px);
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    padding: 16px 44px;
+    cursor: none;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    transition: border-color .3s, color .3s;
+  }
+  .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .hero-scroll-hint {
+    position: absolute;
+    bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+  }
+  .hero-scroll-hint span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .scroll-line {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+
+  /* Scanline effect */
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* ─── TICKER ─── */
+  .ticker-wrap {
+    overflow: hidden;
+    background: var(--gold);
+    padding: 10px 0;
+    position: relative;
+    z-index: 20;
+  }
+  .ticker {
+    display: flex;
+    white-space: nowrap;
+    animation: ticker 25s linear infinite;
+  }
+  .ticker-item {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    letter-spacing: 5px;
+    color: var(--black);
+    padding: 0 40px;
+  }
+  .ticker-sep { color: rgba(0,0,0,0.4); margin: 0 4px; }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ─── SHOWCASE ─── */
+  #showcase {
+    padding: 120px 0;
+    overflow: hidden;
+    background: var(--obsidian);
+    position: relative;
+  }
+  #showcase::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .section-header {
+    text-align: center;
+    padding: 0 48px;
+    margin-bottom: 80px;
+  }
+  .section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 6vw, 90px);
+    color: #fff;
+    letter-spacing: 4px;
+  }
+  .section-title .accent { color: var(--gold); }
+
+  .carousel-track-wrap {
+    overflow: hidden;
+    position: relative;
+  }
+  .carousel-track {
+    display: flex;
+    gap: 24px;
+    padding: 0 80px;
+    will-change: transform;
+  }
+
+  .cut-card {
+    flex: 0 0 380px;
+    height: 520px;
+    position: relative;
+    border: 1px solid rgba(212,175,55,0.15);
+    overflow: hidden;
+    background: var(--gray);
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    cursor: none;
+    transition: border-color .3s;
+  }
+  .cut-card:hover { border-color: rgba(212,175,55,0.6); }
+
+  .card-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transition: transform .6s cubic-bezier(0.25,0.46,0.45,0.94), filter .4s;
+    filter: saturate(0.3) brightness(0.5);
+  }
+  .cut-card:hover .card-bg {
+    transform: scale(1.08);
+    filter: saturate(0.6) brightness(0.65);
+  }
+  .card-gif-overlay {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity .5s;
+  }
+  .cut-card:hover .card-gif-overlay { opacity: 0.35; }
+
+  .card-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 80%, rgba(212,175,55,0.15) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity .4s;
+  }
+  .cut-card:hover .card-glow { opacity: 1; }
+
+  .card-corner {
+    position: absolute;
+    top: 0; right: 0;
+    width: 0; height: 0;
+    border-top: 40px solid var(--gold);
+    border-left: 40px solid transparent;
+    opacity: 0.7;
+  }
+
+  .card-body {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 32px;
+    background: linear-gradient(to top, rgba(10,10,10,0.98) 0%, rgba(10,10,10,0.6) 60%, transparent 100%);
+    transform: translateY(0);
+    transition: transform .4s;
+  }
+  .card-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 3px;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    line-height: 1.6;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .5s, opacity .4s;
+    opacity: 0;
+  }
+  .cut-card:hover .card-desc { max-height: 80px; opacity: 1; }
+  .card-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    border: 1px solid var(--cyan-dim);
+    padding: 4px 10px;
+    text-transform: uppercase;
+    background: rgba(0,240,255,0.05);
+  }
+
+  /* Glitch line on hover */
+  .cut-card::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: -100%;
+    width: 100%; height: 2px;
+    background: linear-gradient(to right, transparent, var(--cyan), transparent);
+    opacity: 0;
+    transition: left .4s, opacity .4s;
+  }
+  .cut-card:hover::after {
+    left: 100%;
+    opacity: 0.6;
+    animation: glitchSweep 0.6s ease forwards;
+  }
+  @keyframes glitchSweep {
+    0% { left: -100%; opacity: 0; }
+    30% { opacity: 0.8; }
+    100% { left: 100%; opacity: 0; }
+  }
+
+  /* Drag hint */
+  .drag-hint {
+    text-align: center;
+    margin-top: 40px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ─── FEATURES ─── */
+  #features {
+    padding: 140px 80px;
+    position: relative;
+    background: var(--black);
+  }
+  #features::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--cyan), transparent);
+  }
+
+  .features-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .features-visual {
+    position: relative;
+  }
+  .features-main-img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    filter: saturate(0.5);
+    clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+    position: relative;
+    z-index: 2;
+  }
+  .features-gif {
+    position: absolute;
+    bottom: -20px; right: -20px;
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border: 2px solid var(--gold);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    z-index: 3;
+    filter: saturate(0.7);
+  }
+  .features-badge {
+    position: absolute;
+    top: -20px; left: -20px;
+    width: 120px; height: 120px;
+    background: var(--gold);
+    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+  }
+  .badge-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--black);
+    line-height: 1;
+  }
+  .badge-text {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(0,0,0,0.6);
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .glow-line {
+    position: absolute;
+    left: -30px; top: 20%;
+    width: 2px; height: 60%;
+    background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+    opacity: 0.6;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .feature-card {
+    padding: 28px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--obsidian);
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition: border-color .3s, transform .3s;
+    cursor: none;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 0% 0%, rgba(212,175,55,0.08) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity .4s;
+  }
+  .feature-card:hover { border-color: rgba(212,175,55,0.4); transform: translateY(-4px); }
+  .feature-card:hover::before { opacity: 1; }
+
+  /* Glitch matrix effect */
+  .feature-card:hover .glitch-matrix { opacity: 1; }
+  .glitch-matrix {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity .3s;
+  }
+  .matrix-text {
+    position: absolute;
+    top: 0; right: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--cyan);
+    opacity: 0.15;
+    writing-mode: vertical-rl;
+    animation: matrixFall 3s linear infinite;
+    letter-spacing: 2px;
+  }
+  .matrix-text:nth-child(2) { right: 20px; animation-delay: -1s; opacity: 0.1; }
+  .matrix-text:nth-child(3) { right: 32px; animation-delay: -2s; opacity: 0.08; }
+  @keyframes matrixFall {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .feature-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .feature-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    letter-spacing: 0.5px;
+  }
+  .feature-line {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0%; height: 2px;
+    background: linear-gradient(to right, var(--gold), var(--cyan));
+    transition: width .4s;
+  }
+  .feature-card:hover .feature-line { width: 100%; }
+
+  /* ─── STATS ─── */
+  #stats {
+    padding: 80px;
+    background: var(--obsidian);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid rgba(212,175,55,0.1);
+    border-bottom: 1px solid rgba(212,175,55,0.1);
+    position: relative;
+  }
+  .stat-item {
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+  }
+  .stat-item::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 20%; bottom: 20%;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(212,175,55,0.2), transparent);
+  }
+  .stat-item:last-child::after { display: none; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: var(--gold);
+    line-height: 1;
+    display: block;
+    text-shadow: 0 0 40px rgba(212,175,55,0.3);
+  }
+  .stat-label {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 8px;
+    display: block;
+  }
+
+  /* ─── BOOKING ─── */
+  #booking {
+    padding: 140px 80px;
+    background: var(--black);
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+  }
+  .booking-bg {
+    position: absolute;
+    inset: 0;
+    background: url('https://images.squarespace-cdn.com/content/v1/5941c4a0e3df28d6556f8f53/1557434552431-OMY2WFFY2ST1S4422B1V/Barber+animation.gif') center/cover;
+    opacity: 0.05;
+  }
+  .booking-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(212,175,55,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .booking-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .booking-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(50px, 7vw, 100px);
+    letter-spacing: 4px;
+    line-height: 0.95;
+    color: #fff;
+    margin-bottom: 24px;
+  }
+  .booking-title span { color: var(--gold); }
+  .booking-sub {
+    font-size: 15px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 48px;
+  }
+  .time-slots {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  .slot {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 10px 20px;
+    cursor: none;
+    transition: all .3s;
+    background: transparent;
+  }
+  .slot:hover, .slot.active {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: rgba(212,175,55,0.08);
+    box-shadow: 0 0 20px rgba(212,175,55,0.15);
+  }
+  .book-btn {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--black);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 6px;
+    padding: 20px 70px;
+    cursor: none;
+    border: none;
+    clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+    transition: box-shadow .3s, transform .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .book-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+    transform: translateX(-100%);
+    transition: transform .4s;
+  }
+  .book-btn:hover {
+    box-shadow: 0 0 60px rgba(212,175,55,0.5);
+    transform: translateY(-3px);
+  }
+  .book-btn:hover::before { transform: translateX(100%); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    padding: 60px 80px;
+    background: var(--obsidian);
+    border-top: 1px solid rgba(212,175,55,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 8px;
+    color: var(--gold);
+  }
+  .footer-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .footer-socials {
+    display: flex;
+    gap: 20px;
+  }
+  .social-link {
+    width: 40px; height: 40px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 14px;
+    transition: border-color .3s, color .3s;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
+  .social-link:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+  /* GSAP will-change perf */
+  .animate-in { will-change: transform, opacity; }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">BLVCK BLADE</div>
+  <ul class="nav-links">
+    <li><a href="#showcase">Cuts</a></li>
+    <li><a href="#features">Studio</a></li>
+    <li><a href="#booking">Booking</a></li>
+  </ul>
+  <button class="nav-cta">Book Now</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-gif"></div>
+  <canvas id="hero-canvas"></canvas>
+  <div class="scanlines"></div>
+  <div class="hero-content">
+    <div class="hero-tag animate-in">✦ Premium Barbershop Experience ✦</div>
+    <h1 class="hero-title">
+      <span class="word">HAIRCUT</span>
+      <span class="word">IS NOT</span><br>
+      <span class="word gold">JUST</span>
+      <span class="word">A STYLE,</span><br>
+      <span class="word">IT'S</span>
+      <span class="word gold">ART</span>
+    </h1>
+    <p class="hero-sub animate-in">Est. 2019 &nbsp;·&nbsp; Master Barbers &nbsp;·&nbsp; Tashkent, UZ</p>
+    <div class="hero-actions">
+      <button class="btn-primary">Book a Session</button>
+      <button class="btn-outline">View Portfolio</button>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">PRECISION CUTS <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">LUXURY GROOMING <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">MASTER BARBERS <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">STRAIGHT RAZOR SHAVE <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">BEARD SCULPTING <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">FADE SPECIALISTS <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">PREMIUM EXPERIENCE <span class="ticker-sep">◆</span></span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item">PRECISION CUTS <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">LUXURY GROOMING <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">MASTER BARBERS <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">STRAIGHT RAZOR SHAVE <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">BEARD SCULPTING <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">FADE SPECIALISTS <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">PREMIUM EXPERIENCE <span class="ticker-sep">◆</span></span>
+  </div>
+</div>
+
+<!-- SHOWCASE -->
+<section id="showcase">
+  <div class="section-header">
+    <span class="section-label">// 02 — Our Craft</span>
+    <h2 class="section-title">SIGNATURE <span class="accent">CUTS</span></h2>
+  </div>
+  <div class="carousel-track-wrap">
+    <div class="carousel-track" id="carouselTrack">
+
+      <div class="cut-card">
+        <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80')"></div>
+        <div class="card-gif-overlay" style="background-image: url('https://images.squarespace-cdn.com/content/v1/5941c4a0e3df28d6556f8f53/1557434552431-OMY2WFFY2ST1S4422B1V/Barber+animation.gif')"></div>
+        <div class="card-glow"></div>
+        <div class="card-corner"></div>
+        <div class="card-body">
+          <div class="card-num">01 / FADE</div>
+          <div class="card-title">The Fade</div>
+          <div class="card-desc">Seamless gradient blends from skin to full length. The ultimate modern barbershop signature move.</div>
+          <div class="card-tags">
+            <span class="tag">Skin Fade</span>
+            <span class="tag">Mid Fade</span>
+            <span class="tag">High Fade</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cut-card">
+        <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&q=80')"></div>
+        <div class="card-gif-overlay" style="background-image: url('https://i.pinimg.com/originals/18/72/7e/18727e025805562723c3b01859846bdf.gif')"></div>
+        <div class="card-glow"></div>
+        <div class="card-corner"></div>
+        <div class="card-body">
+          <div class="card-num">02 / CROP</div>
+          <div class="card-title">Textured Crop</div>
+          <div class="card-desc">Clean, structured top with a sharp fringe. Defined and purposeful — for the man who commands attention.</div>
+          <div class="card-tags">
+            <span class="tag">French Crop</span>
+            <span class="tag">Buzz Crop</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cut-card">
+        <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&q=80')"></div>
+        <div class="card-gif-overlay" style="background-image: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnd6M3o3MmwwNms5M3B3eW5wcm9qZHpxamR6ZXZ6dGd6dWZtM3pqOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l378c04fX8VfExsT6/giphy.gif')"></div>
+        <div class="card-glow"></div>
+        <div class="card-corner"></div>
+        <div class="card-body">
+          <div class="card-num">03 / POMP</div>
+          <div class="card-title">Pompadour</div>
+          <div class="card-desc">Timeless volume and sweep. Architectural hair design that merges classic elegance with contemporary flair.</div>
+          <div class="card-tags">
+            <span class="tag">Disconnected</span>
+            <span class="tag">Modern Pomp</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cut-card">
+        <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1562004760-aceed7bb982a?w=600&q=80')"></div>
+        <div class="card-gif-overlay" style="background-image: url('https://images.squarespace-cdn.com/content/v1/5941c4a0e3df28d6556f8f53/1557434552431-OMY2WFFY2ST1S4422B1V/Barber+animation.gif')"></div>
+        <div class="card-glow"></div>
+        <div class="card-corner"></div>
+        <div class="card-body">
+          <div class="card-num">04 / UNDER</div>
+          <div class="card-title">Undercut</div>
+          <div class="card-desc">Bold contrast between shaved sides and long top. Maximum expression. Maximum impact.</div>
+          <div class="card-tags">
+            <span class="tag">Hard Part</span>
+            <span class="tag">Slick Back</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cut-card">
+        <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=600&q=80')"></div>
+        <div class="card-gif-overlay" style="background-image: url('https://i.pinimg.com/originals/18/72/7e/18727e025805562723c3b01859846bdf.gif')"></div>
+        <div class="card-glow"></div>
+        <div class="card-corner"></div>
+        <div class="card-body">
+          <div class="card-num">05 / RAZOR</div>
+          <div class="card-title">Razor Shave</div>
+          <div class="card-desc">The ritual. Hot towel. Steel blade. A transformative grooming ceremony for the discerning gentleman.</div>
+          <div class="card-tags">
+            <span class="tag">Hot Towel</span>
+            <span class="tag">Beard Line</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="drag-hint">— DRAG TO EXPLORE —</div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="stat-item">
+    <span class="stat-num" data-target="4800">0</span>
+    <span class="stat-label">Clients Served</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num" data-target="12">0</span>
+    <span class="stat-label">Master Barbers</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num" data-target="98">0</span>
+    <span class="stat-label">% Satisfaction</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num" data-target="7">0</span>
+    <span class="stat-label">Years of Craft</span>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="features-layout">
+    <div class="features-visual">
+      <div class="glow-line"></div>
+      <img class="features-main-img" src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80" alt="Barber at work">
+      <img class="features-gif" src="https://i.pinimg.com/originals/18/72/7e/18727e025805562723c3b01859846bdf.gif" alt="Tools">
+      <div class="features-badge">
+        <span class="badge-num">A+</span>
+        <span class="badge-text">Master Grade</span>
+      </div>
+    </div>
+    <div>
+      <span class="section-label">// 03 — Experience</span>
+      <h2 class="section-title" style="font-size:clamp(38px,4.5vw,70px);margin-bottom:48px;">WHY <span class="accent">BLVCK BLADE</span></h2>
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <div class="glitch-matrix">
+            <div class="matrix-text">10101010110010</div>
+            <div class="matrix-text">01100101010101</div>
+            <div class="matrix-text">11001010110010</div>
+          </div>
+          <span class="feature-icon">⚡</span>
+          <div class="feature-name">Precision Craft</div>
+          <p class="feature-desc">Every cut executed to 0.1mm accuracy using Japanese steel instruments.</p>
+          <div class="feature-line"></div>
+        </div>
+
+        <div class="feature-card">
+          <div class="glitch-matrix">
+            <div class="matrix-text">01011010101101</div>
+            <div class="matrix-text">10110101011010</div>
+            <div class="matrix-text">01101010110101</div>
+          </div>
+          <span class="feature-icon">◈</span>
+          <div class="feature-name">Premium Products</div>
+          <p class="feature-desc">Curated selection of luxury grooming brands. Your hair deserves nothing less.</p>
+          <div class="feature-line"></div>
+        </div>
+
+        <div class="feature-card">
+          <div class="glitch-matrix">
+            <div class="matrix-text">11010101011010</div>
+            <div class="matrix-text">01101011010101</div>
+            <div class="matrix-text">10101101010110</div>
+          </div>
+          <span class="feature-icon">✦</span>
+          <div class="feature-name">Consultation</div>
+          <p class="feature-desc">Personalized style analysis before every appointment. We study your face architecture.</p>
+          <div class="feature-line"></div>
+        </div>
+
+        <div class="feature-card">
+          <div class="glitch-matrix">
+            <div class="matrix-text">00110101010101</div>
+            <div class="matrix-text">10101010011010</div>
+            <div class="matrix-text">01010101101010</div>
+          </div>
+          <span class="feature-icon">◉</span>
+          <div class="feature-name">Private Studio</div>
+          <p class="feature-desc">Intimate, distraction-free environment. Your grooming ritual is sacred here.</p>
+          <div class="feature-line"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section id="booking">
+  <div class="booking-bg"></div>
+  <div class="booking-glow"></div>
+  <div class="booking-content">
+    <span class="section-label">// 04 — Reserve Your Throne</span>
+    <h2 class="booking-title">BOOK YOUR<br><span>SESSION</span></h2>
+    <p class="booking-sub">Select your preferred time slot</p>
+    <div class="time-slots">
+      <button class="slot active">09:00</button>
+      <button class="slot">10:30</button>
+      <button class="slot">12:00</button>
+      <button class="slot">14:00</button>
+      <button class="slot">15:30</button>
+      <button class="slot">17:00</button>
+      <button class="slot">18:30</button>
+    </div>
+    <button class="book-btn">CONFIRM BOOKING</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">BLVCK BLADE</div>
+  <div class="footer-text">© 2026 Blvck Blade Studio &nbsp;·&nbsp; All Rights Reserved</div>
+  <div class="footer-socials">
+    <a class="social-link" href="#">IG</a>
+    <a class="social-link" href="#">TK</a>
+    <a class="social-link" href="#">YT</a>
+  </div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// CUSTOM CURSOR
+// ─────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mouseX = 0, mouseY = 0;
+let ringX = 0, ringY = 0;
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px';
+  cursor.style.top = mouseY + 'px';
+});
+
+function animateCursorRing() {
+  ringX += (mouseX - ringX) * 0.12;
+  ringY += (mouseY - ringY) * 0.12;
+  cursorRing.style.left = ringX + 'px';
+  cursorRing.style.top = ringY + 'px';
+  requestAnimationFrame(animateCursorRing);
+}
+animateCursorRing();
+
+document.querySelectorAll('button, a, .cut-card, .feature-card, .slot').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.width = '20px';
+    cursor.style.height = '20px';
+    cursorRing.style.width = '60px';
+    cursorRing.style.height = '60px';
+    cursorRing.style.opacity = '0.8';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.width = '12px';
+    cursor.style.height = '12px';
+    cursorRing.style.width = '40px';
+    cursorRing.style.height = '40px';
+    cursorRing.style.opacity = '0.5';
+  });
+});
+
+// ─────────────────────────────────────────────
+// THREE.JS HERO SCENE — Rotating Geometric Object
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('hero-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 5);
+
+// Icosahedron + wireframe
+const geo = new THREE.IcosahedronGeometry(1.6, 1);
+const mat = new THREE.MeshPhysicalMaterial({
+  color: 0xD4AF37,
+  metalness: 0.9,
+  roughness: 0.1,
+  wireframe: false,
+  transparent: true,
+  opacity: 0.08,
+});
+const mesh = new THREE.Mesh(geo, mat);
+scene.add(mesh);
+
+const wireMat = new THREE.MeshBasicMaterial({ color: 0xD4AF37, wireframe: true, transparent: true, opacity: 0.25 });
+const wireMesh = new THREE.Mesh(geo, wireMat);
+scene.add(wireMesh);
+
+// Inner glowing sphere
+const innerGeo = new THREE.SphereGeometry(0.9, 32, 32);
+const innerMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.04 });
+const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+scene.add(innerMesh);
+
+// Orbit rings
+function makeRing(r, color, opacity) {
+  const rGeo = new THREE.TorusGeometry(r, 0.006, 4, 100);
+  const rMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity });
+  return new THREE.Mesh(rGeo, rMat);
+}
+const ring1 = makeRing(2.4, 0xD4AF37, 0.35);
+const ring2 = makeRing(2.1, 0x00f0ff, 0.2);
+const ring3 = makeRing(1.9, 0xD4AF37, 0.15);
+ring1.rotation.x = Math.PI / 4;
+ring2.rotation.x = -Math.PI / 5;
+ring2.rotation.y = Math.PI / 3;
+ring3.rotation.z = Math.PI / 6;
+scene.add(ring1, ring2, ring3);
+
+// Particles
+const particleGeo = new THREE.BufferGeometry();
+const count = 600;
+const positions = new Float32Array(count * 3);
+for (let i = 0; i < count * 3; i++) {
+  positions[i] = (Math.random() - 0.5) * 14;
+}
+particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+const particleMat = new THREE.PointsMaterial({ color: 0xD4AF37, size: 0.025, transparent: true, opacity: 0.4 });
+const particles = new THREE.Points(particleGeo, particleMat);
+scene.add(particles);
+
+// Lights
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+const pointLight1 = new THREE.PointLight(0xD4AF37, 3, 20);
+pointLight1.position.set(3, 3, 3);
+scene.add(pointLight1);
+const pointLight2 = new THREE.PointLight(0x00f0ff, 2, 20);
+pointLight2.position.set(-3, -2, 2);
+scene.add(pointLight2);
+
+// Mouse parallax for 3D scene
+let targetRotX = 0, targetRotY = 0;
+document.addEventListener('mousemove', e => {
+  targetRotX = (e.clientY / window.innerHeight - 0.5) * 0.6;
+  targetRotY = (e.clientX / window.innerWidth - 0.5) * 0.8;
+});
+
+function animate3D(time) {
+  requestAnimationFrame(animate3D);
+  const t = time * 0.001;
+
+  mesh.rotation.x += (targetRotX - mesh.rotation.x) * 0.05;
+  mesh.rotation.y += (targetRotY + t * 0.15 - mesh.rotation.y) * 0.05;
+  wireMesh.rotation.x = mesh.rotation.x;
+  wireMesh.rotation.y = mesh.rotation.y;
+
+  ring1.rotation.z = t * 0.3;
+  ring2.rotation.x = -Math.PI / 5 + Math.sin(t * 0.4) * 0.3;
+  ring3.rotation.y = t * 0.2;
+
+  particles.rotation.y = t * 0.04;
+  particles.rotation.x = t * 0.02;
+
+  pointLight1.position.x = Math.sin(t * 0.7) * 4;
+  pointLight1.position.y = Math.cos(t * 0.5) * 3;
+  pointLight2.position.x = Math.cos(t * 0.6) * -4;
+
+  renderer.render(scene, camera);
+}
+animate3D(0);
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ─────────────────────────────────────────────
+// GSAP ANIMATIONS
+// ─────────────────────────────────────────────
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero entrance
+const heroTl = gsap.timeline({ delay: 0.3 });
+heroTl.to('.hero-tag', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', from: { y: 20 } })
+  .from('.hero-title .word', {
+    y: 80,
+    opacity: 0,
+    duration: 0.9,
+    stagger: 0.1,
+    ease: 'power4.out'
+  }, '-=0.4')
+  .to('.hero-sub', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', from: { y: 20 } }, '-=0.3')
+  .to('.hero-actions', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', from: { y: 20 } }, '-=0.4')
+  .to('.hero-scroll-hint', { opacity: 1, duration: 0.6 }, '-=0.2');
+
+// Section headers animate in
+gsap.utils.toArray('.section-header, .booking-content').forEach(el => {
+  gsap.from(el.children, {
+    scrollTrigger: { trigger: el, start: 'top 80%' },
+    y: 50, opacity: 0, duration: 0.9, stagger: 0.15, ease: 'power3.out'
+  });
+});
+
+// Cards animate in
+gsap.from('.cut-card', {
+  scrollTrigger: { trigger: '#showcase', start: 'top 70%' },
+  x: 80, opacity: 0, duration: 0.8, stagger: 0.12, ease: 'power3.out'
+});
+
+// Feature cards
+gsap.from('.feature-card', {
+  scrollTrigger: { trigger: '#features', start: 'top 70%' },
+  y: 50, opacity: 0, duration: 0.7, stagger: 0.12, ease: 'power3.out'
+});
+
+// Stats counter animation
+document.querySelectorAll('.stat-num').forEach(el => {
+  const target = parseInt(el.dataset.target);
+  ScrollTrigger.create({
+    trigger: el,
+    start: 'top 80%',
+    once: true,
+    onEnter: () => {
+      gsap.to({ val: 0 }, {
+        val: target,
+        duration: 1.8,
+        ease: 'power2.out',
+        onUpdate: function() {
+          el.textContent = Math.floor(this.targets()[0].val).toLocaleString();
+        }
+      });
+    }
+  });
+});
+
+// Features visual parallax
+gsap.to('.features-main-img', {
+  scrollTrigger: { trigger: '#features', scrub: 1.5, start: 'top bottom', end: 'bottom top' },
+  y: -60
+});
+
+// ─────────────────────────────────────────────
+// HORIZONTAL CAROUSEL (drag + inertia)
+// ─────────────────────────────────────────────
+const track = document.getElementById('carouselTrack');
+let isDragging = false;
+let startX = 0;
+let scrollLeft = 0;
+let velX = 0;
+let lastX = 0;
+let rafId;
+
+track.addEventListener('mousedown', e => {
+  isDragging = true;
+  startX = e.pageX - track.offsetLeft;
+  scrollLeft = track.scrollLeft;
+  lastX = e.pageX;
+  cancelAnimationFrame(rafId);
+  track.style.cursor = 'grabbing';
+});
+document.addEventListener('mouseup', () => {
+  if (!isDragging) return;
+  isDragging = false;
+  track.style.cursor = '';
+  // Inertia
+  function inertia() {
+    velX *= 0.92;
+    track.scrollLeft -= velX;
+    if (Math.abs(velX) > 0.5) rafId = requestAnimationFrame(inertia);
+  }
+  inertia();
+});
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  velX = e.pageX - lastX;
+  lastX = e.pageX;
+  const x = e.pageX - track.offsetLeft;
+  track.scrollLeft = scrollLeft - (x - startX);
+});
+
+// Touch support
+track.addEventListener('touchstart', e => {
+  startX = e.touches[0].pageX;
+  scrollLeft = track.scrollLeft;
+  lastX = startX;
+  cancelAnimationFrame(rafId);
+}, { passive: true });
+track.addEventListener('touchmove', e => {
+  velX = e.touches[0].pageX - lastX;
+  lastX = e.touches[0].pageX;
+  track.scrollLeft = scrollLeft - (lastX - startX);
+}, { passive: true });
+track.addEventListener('touchend', () => {
+  function inertia() {
+    velX *= 0.92;
+    track.scrollLeft -= velX;
+    if (Math.abs(velX) > 0.5) rafId = requestAnimationFrame(inertia);
+  }
+  inertia();
+});
+
+// ─────────────────────────────────────────────
+// TIME SLOT SELECTION
+// ─────────────────────────────────────────────
+document.querySelectorAll('.slot').forEach(slot => {
+  slot.addEventListener('click', () => {
+    document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
+    slot.classList.add('active');
+  });
+});
+
+// ─────────────────────────────────────────────
+// GLITCH EFFECT on stat numbers (periodic)
+// ─────────────────────────────────────────────
+function randomGlitch() {
+  const nums = document.querySelectorAll('.stat-num');
+  const el = nums[Math.floor(Math.random() * nums.length)];
+  const orig = el.textContent;
+  let flickers = 0;
+  const interval = setInterval(() => {
+    el.textContent = Math.floor(Math.random() * 9999).toString();
+    el.style.color = Math.random() > 0.5 ? 'var(--cyan)' : 'var(--gold)';
+    flickers++;
+    if (flickers > 4) {
+      clearInterval(interval);
+      el.textContent = orig;
+      el.style.color = '';
+    }
+  }, 60);
+}
+setInterval(randomGlitch, 4000);
+
+// ─────────────────────────────────────────────
+// Smooth parallax on hero bg
+// ─────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  const heroBg = document.querySelector('.hero-bg-gif');
+  if (heroBg) heroBg.style.transform = `translateY(${y * 0.4}px)`;
+});
+</script>
+</body>
+</html>
